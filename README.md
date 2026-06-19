@@ -6,23 +6,38 @@ This project provides lightweight, modern Docker images that make deploying MODX
 
 ## Quick Start
 
-Pull the latest image:
+### Option 1 - Use Docker Compose
 
 ```bash
-docker pull modxium/modx:latest
+git clone https://github.com/modxium/modx.git
+
+cd modx/installer/docker/apache
+
+docker compose up -d
 ```
 
-Run the container:
+### Option 2 - Run directly
 
 ```bash
-docker run -p 8080:80 modxium/modx:latest
+docker run --rm \
+    -p 8080:80 \
+    -e MODX_VERSION=3.2.1-pl \
+    modxium/modx:installer
+```
+
+### Option 3 - Pull the image first
+
+```
+docker pull modxium/modx:installer
+docker run -p 8080:80 modxium/modx:installer
 ```
 
 Open your browser and complete the standard MODX installation:
 
 `http://localhost:8080/setup`
 
-> **Note:** The `latest` tag currently points to the **Standard** image. In a future release, `latest` will become the recommended **Headless** deployment while the `standard` image will remain available for traditional MODX installations.
+
+> **Note:** The `latest` tag currently points to the **Installer** image. In a future release, `latest` will become the recommended **Headless** deployment while the `standard` image will remain available for traditional MODX installations.
 
 ## Core Principles
 
@@ -43,25 +58,25 @@ The Modxium Docker collection is designed around two deployment philosophies:
 
 | Image                 | Description                                                                                                                   |
 | --------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `standard`            | A conventional MODX installation with the standard `/setup` installer ready to use.                                           |
+| `installer`           | A conventional MODX installation with the standard `/setup` installer ready to use. |
 | `headless` *(future)* | An opinionated deployment using MODX as a Headless Content Engine, including curated defaults and additional Modxium tooling. |
 
 Each image may be published with Apache and Nginx variants:
 
-| Tag               | Description                                         |
-| ----------------- | --------------------------------------------------- |
-| `standard`        | Alias for the recommended Standard image            |
-| `standard-apache` | Standard MODX installation using Apache             |
-| `standard-nginx`  | Standard MODX installation using Nginx *(future)*   |
-| `headless`        | Alias for the recommended Headless image *(future)* |
-| `headless-apache` | Headless deployment using Apache *(future)*         |
-| `headless-nginx`  | Headless deployment using Nginx *(future)*          |
+| Tag                | Description                                         |
+| -----------------  | --------------------------------------------------- |
+| `installer`        | Alias for the recommended Installer image (Apache)  |
+| `installer-apache` | Standard MODX installation using Apache             |
+| `installer-nginx`  | Standard MODX installation using Nginx *(future)*   |
+| `headless`         | Alias for the recommended Headless image *(future)* |
+| `headless-apache`  | Headless deployment using Apache *(future)*         |
+| `headless-nginx`   | Headless deployment using Nginx *(future)*          |
 
 ## Current Status
 
 🚧 This project is under active development.
 
-The initial release focuses on the **Standard** image and provides:
+The initial release focuses on the **Installer** image and provides:
 
 * Apache
 * PHP
@@ -73,16 +88,16 @@ The initial release focuses on the **Standard** image and provides:
 
 ## Roadmap
 
-* Standard Apache image
-* Standard Nginx image
-* Versioned MODX image tags
-* Headless image family
-* Automated installation variants
-* External database support
-* Manifest-driven provisioning
-* Coolify templates
-* GitHub Container Registry publishing
-* Docker Hub publishing
+- [x] Installer Apache image
+- [x] Docker Hub publishing
+- [x] GitHub Container Registry publishing
+- [ ] Installer Nginx image
+- [ ] Versioned MODX image tags
+- [ ] Headless image family
+- [ ] Automated installation variants
+- [ ] External database support
+- [ ] Manifest-driven provisioning
+- [ ] Coolify templates
 
 ## Contributing
 
