@@ -15,9 +15,9 @@ services:
       MODX_VERSION: ${MODX_VERSION:-3.2.1-pl}
 
     volumes:
-      - modxium-modx-installer-apache-data:/var/www/html
+      - data:/var/www/html
 
     restart: unless-stopped
 
 volumes:
-  modxium-modx-installer-apache-data:
+  data:
