@@ -4,6 +4,7 @@ set -e
 
 WEBROOT="/var/www/html"
 HTTP_PORT="${HTTP_PORT:-8080}"
+WEBHOOK_PATH="${APP_WEBHOOK_PATH:-modxium-webhook.php}"
 
 if [ -z "${MODX_VERSION:-}" ]; then
     echo "ERROR: MODX_VERSION is required."
@@ -37,15 +38,58 @@ ${WEBROOT}/manager/ht.access
 
 }
 
+install_webhook_endpoint() {
+    if [ "${APP_WEBHOOK_ENABLED:-false}" != "true" ]; then
+        return 0
+    fi
+
+    case "$WEBHOOK_PATH" in
+        /*|*..*|*/*)
+            echo "ERROR: APP_WEBHOOK_PATH must be a simple filename, e.g. modxium-webhook.php"
+            exit 1
+            ;;
+    esac
+
+    if [ ! -f /opt/modxium/webhook.php ]; then
+        echo "ERROR: /opt/modxium/webhook.php is missing."
+        exit 1
+    fi
+
+    cp /opt/modxium/webhook.php "${WEBROOT}/${WEBHOOK_PATH}"
+    chown www-data:www-data "${WEBROOT}/${WEBHOOK_PATH}" 2>/dev/null || true
+
+    echo "✔ GitHub webhook endpoint ready: /${WEBHOOK_PATH}"
+}
+
+run_git_sync_if_enabled() {
+    if [ "${APP_GIT_ENABLED:-false}" != "true" ]; then
+        return 0
+    fi
+
+    if [ "${APP_GIT_AUTO_SYNC:-true}" != "true" ]; then
+        echo "Git integration enabled, but startup sync disabled."
+        return 0
+    fi
+
+    /opt/modxium/git-sync.sh
+}
+
+bootstrap_git_and_webhook() {
+    install_webhook_endpoint
+    run_git_sync_if_enabled
+}
+
 if [ -f "${WEBROOT}/core/config/config.inc.php" ]; then
     echo "MODX is already installed in ${WEBROOT}. Skipping download."
     install_htaccess_files
+    bootstrap_git_and_webhook
     exec "$@"
 fi
 
 if [ -f "${WEBROOT}/setup/index.php" ] || [ -f "${WEBROOT}/index.php" ]; then
     echo "MODX files already exist in ${WEBROOT}. Skipping download."
     install_htaccess_files
+    bootstrap_git_and_webhook
     exec "$@"
 fi
 
@@ -108,6 +152,8 @@ chown -R www-data:www-data "${WEBROOT}"
 
 rm -rf /tmp/modx-download /tmp/modx.zip
 
+bootstrap_git_and_webhook
+
 get_public_ip() {
     curl -fsS --max-time 2 https://api.ipify.org 2>/dev/null || true
 }
@@ -141,6 +187,12 @@ echo "-    http://localhost:${HTTP_PORT}/setup"
 echo "-    ${INSTALL_URL}/setup"
 echo "-    https://<YOUR_DOMAIN>/setup"
 echo ""
+
+if [ "${APP_WEBHOOK_ENABLED:-false}" = "true" ]; then
+    echo "GitHub webhook endpoint: /${WEBHOOK_PATH}"
+    echo ""
+fi
+
 echo "Happy MODXing!"
 echo ""
 echo "===================================================="
